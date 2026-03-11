@@ -28,3 +28,5 @@ app.delete("/tasks/:id", (req, res) => {
 app.listen(5000, () => {
   console.log("Server running on port 5000");
 });
+
+const API_URL = "https://norzinwangmo-02250359-dso101-a1.onrender.com/api";
