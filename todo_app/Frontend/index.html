@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Todo App</title>
+<title>Todo CRUD App</title>
 </head>
 
 <body>
@@ -15,38 +15,66 @@
 
 <script>
 
-const API="https://norzinwangmo-02250359-dso101-a1-1.onrender.com"
+const API="https://norzinwangmo-02250359-dso101-a1.onrender.com"
 
 async function loadTasks(){
- const res=await fetch(API+"/tasks")
- const tasks=await res.json()
+ const res = await fetch(API+"/tasks")
+ const tasks = await res.json()
 
  const list=document.getElementById("taskList")
  list.innerHTML=""
 
  tasks.forEach(t=>{
-   const li=document.createElement("li")
-   li.innerHTML=t.text + " <button onclick='deleteTask("+t.id+")'>Delete</button>"
-   list.appendChild(li)
+  const li=document.createElement("li")
+
+  li.innerHTML = `
+  ${t.text}
+  <button onclick="editTask(${t.id})">Edit</button>
+  <button onclick="deleteTask(${t.id})">Delete</button>
+  `
+
+  list.appendChild(li)
  })
 }
 
 async function addTask(){
+
  const text=document.getElementById("taskInput").value
 
  await fetch(API+"/tasks",{
    method:"POST",
-   headers:{"Content-Type":"application/json"},
+   headers:{
+     "Content-Type":"application/json"
+   },
    body:JSON.stringify({text})
  })
+
+ document.getElementById("taskInput").value=""
 
  loadTasks()
 }
 
 async function deleteTask(id){
+
  await fetch(API+"/tasks/"+id,{
    method:"DELETE"
  })
+
+ loadTasks()
+}
+
+async function editTask(id){
+
+ const newText = prompt("Edit task")
+
+ await fetch(API+"/tasks/"+id,{
+   method:"PUT",
+   headers:{
+     "Content-Type":"application/json"
+   },
+   body:JSON.stringify({text:newText})
+ })
+
  loadTasks()
 }
 

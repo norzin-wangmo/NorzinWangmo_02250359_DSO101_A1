@@ -7,31 +7,47 @@ app.use(express.json())
 
 let tasks = []
 
-app.get("/tasks", (req,res)=>{
-  res.json(tasks)
-})
-
+// CREATE
 app.post("/tasks",(req,res)=>{
-  const task = {id: Date.now(), text: req.body.text}
-  tasks.push(task)
-  res.json(task)
+ const task = {
+   id: Date.now(),
+   text: req.body.text
+ }
+ tasks.push(task)
+ res.json(task)
 })
 
+// READ
+app.get("/tasks",(req,res)=>{
+ res.json(tasks)
+})
+
+// UPDATE
+app.put("/tasks/:id",(req,res)=>{
+ const id = parseInt(req.params.id)
+
+ tasks = tasks.map(task=>{
+   if(task.id === id){
+     task.text = req.body.text
+   }
+   return task
+ })
+
+ res.json({message:"updated"})
+})
+
+// DELETE
 app.delete("/tasks/:id",(req,res)=>{
-  tasks = tasks.filter(t=>t.id != req.params.id)
-  res.json({message:"deleted"})
+ const id = parseInt(req.params.id)
+
+ tasks = tasks.filter(task=>task.id !== id)
+
+ res.json({message:"deleted"})
 })
 
 app.get("/",(req,res)=>{
-  res.send("Backend running")
+ res.send("Backend running")
 })
 
 const PORT = process.env.PORT || 5000
-app.listen(PORT,()=>console.log("Server running on",PORT))
-
-const path = require("path")
-app.use(express.static(path.join(__dirname, "public")))
-
-app.get("*", (req,res)=>{
-  res.sendFile(path.join(__dirname,"public","index.html"))
-})
+app.listen(PORT,()=>console.log("Server running"))
