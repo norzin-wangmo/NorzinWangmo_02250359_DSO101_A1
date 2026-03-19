@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "test": "jest --ci --reporters=default --reporters=jest-junit",
+    "build": "echo \"No build step required\""
+  }
+}
