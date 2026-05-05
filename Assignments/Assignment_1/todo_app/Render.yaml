@@ -1,14 +1,27 @@
 services:
   - type: web
-    name: todo-backend
+    name: be-todo
     env: docker
-    dockerfilePath: ./backend/Dockerfile
     plan: free
-    branch: main
+    rootDir: Backend
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: todo-db
+          property: connectionString
 
   - type: web
-    name: todo-frontend
+    name: fe-todo
     env: docker
-    dockerfilePath: ./frontend/Dockerfile
     plan: free
-    branch: main
+    rootDir: Frontend
+    dockerfilePath: Dockerfile
+
+databases:
+  - name: todo-db
+    plan: free
