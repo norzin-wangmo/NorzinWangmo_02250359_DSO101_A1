@@ -1,86 +1,221 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Todo CRUD App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo App</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 60px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #2563eb;
+    }
+
+    p {
+      text-align: center;
+      color: #6b7280;
+    }
+
+    .form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 12px 16px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .todo {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .todo span {
+      flex: 1;
+      cursor: pointer;
+    }
+
+    .completed {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .delete {
+      background: #dc2626;
+    }
+
+    .delete:hover {
+      background: #b91c1c;
+    }
+
+    .edit {
+      background: #16a34a;
+    }
+
+    .edit:hover {
+      background: #15803d;
+    }
+  </style>
 </head>
 
 <body>
+  <div class="container">
+    <h1>Todo List App</h1>
+    <p>DSO101 CI/CD Assignment</p>
 
-<h2>Todo List</h2>
+    <div class="form">
+      <input type="text" id="todoInput" placeholder="Enter a task" />
+      <button onclick="addTodo()">Add</button>
+    </div>
 
-<input id="taskInput" placeholder="Enter task">
-<button onclick="addTask()">Add</button>
+    <div id="todoList"></div>
+  </div>
 
-<ul id="taskList"></ul>
+  <script>
+    const API_URL = "http://localhost:5050";
 
-<script>
+    async function fetchTodos() {
+      try {
+        const response = await fetch(`${API_URL}/todos`);
+        const todos = await response.json();
 
-const API="https://norzinwangmo-02250359-dso101-a1.onrender.com"
+        const todoList = document.getElementById("todoList");
+        todoList.innerHTML = "";
 
-async function loadTasks(){
- const res = await fetch(API+"/tasks")
- const tasks = await res.json()
+        if (todos.length === 0) {
+          todoList.innerHTML = "<p>No tasks yet.</p>";
+          return;
+        }
 
- const list=document.getElementById("taskList")
- list.innerHTML=""
+        todos.forEach((todo) => {
+          const div = document.createElement("div");
+          div.className = "todo";
 
- tasks.forEach(t=>{
-  const li=document.createElement("li")
+          div.innerHTML = `
+            <span class="${todo.completed ? "completed" : ""}" onclick="toggleTodo(${todo.id}, '${todo.title}', ${todo.completed})">
+              ${todo.title}
+            </span>
 
-  li.innerHTML = `
-  ${t.text}
-  <button onclick="editTask(${t.id})">Edit</button>
-  <button onclick="deleteTask(${t.id})">Delete</button>
-  `
+            <div class="actions">
+              <button class="edit" onclick="editTodo(${todo.id}, '${todo.title}', ${todo.completed})">Edit</button>
+              <button class="delete" onclick="deleteTodo(${todo.id})">Delete</button>
+            </div>
+          `;
 
-  list.appendChild(li)
- })
-}
+          todoList.appendChild(div);
+        });
+      } catch (error) {
+        console.log("Error fetching todos:", error);
+      }
+    }
 
-async function addTask(){
+    async function addTodo() {
+      const input = document.getElementById("todoInput");
+      const title = input.value;
 
- const text=document.getElementById("taskInput").value
+      if (!title.trim()) {
+        alert("Please enter a task");
+        return;
+      }
 
- await fetch(API+"/tasks",{
-   method:"POST",
-   headers:{
-     "Content-Type":"application/json"
-   },
-   body:JSON.stringify({text})
- })
+      await fetch(`${API_URL}/todos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ title })
+      });
 
- document.getElementById("taskInput").value=""
+      input.value = "";
+      fetchTodos();
+    }
 
- loadTasks()
-}
+    async function deleteTodo(id) {
+      await fetch(`${API_URL}/todos/${id}`, {
+        method: "DELETE"
+      });
 
-async function deleteTask(id){
+      fetchTodos();
+    }
 
- await fetch(API+"/tasks/"+id,{
-   method:"DELETE"
- })
+    async function toggleTodo(id, title, completed) {
+      await fetch(`${API_URL}/todos/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          title,
+          completed: !completed
+        })
+      });
 
- loadTasks()
-}
+      fetchTodos();
+    }
 
-async function editTask(id){
+    async function editTodo(id, oldTitle, completed) {
+      const newTitle = prompt("Edit task:", oldTitle);
 
- const newText = prompt("Edit task")
+      if (!newTitle) return;
 
- await fetch(API+"/tasks/"+id,{
-   method:"PUT",
-   headers:{
-     "Content-Type":"application/json"
-   },
-   body:JSON.stringify({text:newText})
- })
+      await fetch(`${API_URL}/todos/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          title: newTitle,
+          completed
+        })
+      });
 
- loadTasks()
-}
+      fetchTodos();
+    }
 
-loadTasks()
-
-</script>
-
+    fetchTodos();
+  </script>
 </body>
 </html>
